@@ -3,7 +3,6 @@ import  numpy as np
 import  numpy.random  as rd
 import scipy as sp
 from scipy import stats as st
-from collections import Counter
 
 class EM:
     def __init__(self, data, K):
@@ -79,7 +78,7 @@ class EM:
         self.pi = pi
         self.mu_prev = mu_prev
 
-    def convergence_checking(self, data):
+    def convergence_check(self, data):
         """
         """
         # calculate likelihood
@@ -91,16 +90,16 @@ class EM:
         self.diff = prev_sum_log_likelihood - sum_log_likelihood
         self.t += 1
 
-    def EM_Algorithm(self, data):
-        # EMアルゴリズム
+    def EM_Algorithm(self, data, prm):
+        # EM-Algorithm
         while(True):
-            # Eステップ
+            # E-step
             self.E_step()
-            # Mステップ
+            # M-step
             self.M_step(data)
-            # 収束の確認
-            self.convergence_checking(data)
-            if(abs(self.diff)<0.0001):
+            # convergence-check
+            self.convergence_check(data)
+            if(abs(self.diff)<prm):
                 break
 
     def calc_likelihood(self, data):
