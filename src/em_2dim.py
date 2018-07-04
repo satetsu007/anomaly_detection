@@ -7,15 +7,8 @@ from scipy import stats as st
 class EM:
     def __init__(self, data, K):
         """
-        mu: dataの最小値〜最大値の間でランダムに設定
-        sigma: 単位行列
-        pi: 1/K
-        likelihood: 上記パラメータでの対数尤度
         """
-        if len(data.shape) == 1:
-            D = 1
-        elif len(data.shape) == 2:
-            D = data.shape[1]
+        D = data.shape[1]
         N = data.shape[0]
         # initialize pi
         pi = np.zeros(K)
@@ -26,14 +19,9 @@ class EM:
                 pi[k] = 1/K
 
         # initialize mu
-        if len(data.shape) == 1:
-            min_ = [np.min(data) for d in range(D)]
-            max_ = [np.max(data) for d in range(D)]
-        elif len(data.shape) == 2:
-            min_ = [np.min(data[:, d]) for d in range(D)]
-            max_ = [np.max(data[:, d]) for d in range(D)]
-        tmp = [rd.uniform(low=min_[d], high=max_[d], size=K) for d in range(D)]
-        mu = np.c_[tmp].T
+        max_x, min_x = np.max(data[:,0]), np.min(data[:,0])
+        max_y, min_y = np.max(data[:,1]), np.min(data[:,1])
+        mu = np.c_[rd.uniform(low=min_x, high=max_x, size=K), rd.uniform(low=min_y, high=max_y, size=K)]
 
         # initialize sigma
         # sigma = np.asanyarray([np.eye(D) * 0.1 for k in range(K)])
@@ -52,14 +40,12 @@ class EM:
 
     def E_step(self):
         """
-        gammaの計算
         """
         gamma = (self.likelihood.T / np.sum(self.likelihood, axis=1)).T
         self.gamma = gamma
 
     def M_step(self, data):
         """
-        対数尤度を最大化するようにパラメータを更新
         """
         # caluculate pi
         N_k = np.array([np.sum(self.gamma[:,k]) for k in range(self.K)])
@@ -94,7 +80,6 @@ class EM:
 
     def convergence_check(self, data):
         """
-        パラメータ更新前と更新後の対数尤度の差を算出
         """
         # calculate likelihood
         prev_likelihood = self.likelihood
@@ -106,10 +91,6 @@ class EM:
         self.t += 1
 
     def EM_Algorithm(self, data, prm):
-        """
-        prm: アルゴリズム終了を決めるパラメータ
-             self.diff<prmとなれば更新終了
-        """
         # EM-Algorithm
         while(True):
             # E-step
