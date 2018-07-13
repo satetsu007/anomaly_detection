@@ -1,7 +1,6 @@
-class Mahalanobis_Distance:
-    """
-    mahalanobis_distance
-    """
+import numpy as np
+
+class mahalanobis_distance:
     def __init__(self, x):
         self.mu = np.mean(x, axis=0)
         self.sigma = np.cov(x.T)
@@ -14,9 +13,9 @@ class Mahalanobis_Distance:
         """
         マハラノビス距離の算出
         """
-        md = np.zeros((100))
+        md = np.zeros((x.shape[0]))
         for i, ix in enumerate(x):
-            md[i] = np.sqrt(np.dot(np.dot((ix - mu), np.linalg.inv(sigma)), (ix - mu)))
+            md[i] = np.sqrt(np.dot(np.dot((ix - self.mu), np.linalg.inv(self.sigma)), (ix - self.mu)))
         
         self.md = md
         
@@ -25,12 +24,12 @@ class Mahalanobis_Distance:
         マハラノビス距離に基づき並び替える
         """
         self.sort_index = np.argsort(self.md)
-        self.x_md = np.concatenate((x, self.sort_index.reshape(100, 1)), axis=1)
+        self.x_md = np.concatenate((x, self.sort_index.reshape(x.shape[0], 1)), axis=1)
         self.x_md[:, -1].sort()
     
     def check_outlier(self, theta):
         """
-        theta(閾値)を用い外れ値検出を行う
+        thetaを基準に外れ値検出を行う
         """
         flag = []
         for i, imd in enumerate(self.md):
@@ -39,4 +38,4 @@ class Mahalanobis_Distance:
             else:
                 flag.append(0)
         self.flag = np.array(flag)
-        self.x_flag = np.concatenate((x, self.flag.reshape(100, 1)), axis=1)
+        self.x_flag = np.concatenate((x, self.flag.reshape(self.md.shape[0], 1)), axis=1)

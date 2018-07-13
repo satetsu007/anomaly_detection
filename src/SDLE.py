@@ -7,11 +7,13 @@ class SDLE:
         self.r = r
         self.beta = beta
         self.M = M
-        self.t = 1
+        self.T = T
+        
         self.count = np.zeros((T+1, M))
         self.T_t = np.zeros((T+1, M))
-        self.T = T
         self.prob = np.zeros((T+1, M))
+        
+        self.t = 1
     
     def update(self, x_t):
         """
@@ -21,6 +23,7 @@ class SDLE:
             delta = 0
             if i == x_t:
                 delta = 1
+                self.flag = x_t
 
             self.T_t[self.t, i] = (1 - self.r) * self.T_t[self.t-1, i] + delta
             self.count[self.t, i] = self.count[self.t-1, i] + delta
