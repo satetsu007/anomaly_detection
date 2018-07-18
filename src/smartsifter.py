@@ -6,12 +6,6 @@ def hellinger_distance(mu, sigma, mu_prev, sigma_prev):
     
     d_h = -(2 * np.linalg.det((np.linalg.inv(sigma) + np.linalg.inv(sigma_prev)) / 2) ** (-1/2)) / (np.linalg.det(sigma) ** (1/4) * np.linalg.det(sigma_prev) ** (1/4))
     
-<<<<<<< HEAD
-    tmp = np.exp((1/2) * np.dot(np.dot(np.dot(np.linalg.inv(sigma), mu) + np.dot(np.linalg.inv(sigma_prev), mu_prev).T, 
-                              np.linalg.inv(np.linalg.inv(sigma) + np.linalg.inv(sigma_prev))),
-                              np.dot(np.linalg.inv(sigma), mu + np.dot(np.linalg.inv(sigma_prev), mu_prev).T)))
-    d_h *= np.exp(-(1/2) * (np.dot(np.dot(mu.T, np.linalg.inv(sigma)), mu) + np.dot(np.dot(mu_prev.T, np.linalg.inv(sigma_prev)), mu_prev)))
-=======
     #tmp = np.exp((1/2) * np.dot(np.dot(np.dot(np.linalg.inv(sigma), mu) + np.dot(np.linalg.inv(sigma_prev), mu_prev).T, 
     #                          np.linalg.inv(np.linalg.inv(sigma) + np.linalg.inv(sigma_prev))),
     #                          np.dot(np.linalg.inv(sigma), mu + np.dot(np.linalg.inv(sigma_prev), mu_prev).T)))
@@ -25,7 +19,6 @@ def hellinger_distance(mu, sigma, mu_prev, sigma_prev):
     tmp = np.exp((1/2) * np.dot(np.dot(A, B), C))
     tmp *= np.exp(-(1/2) * (np.dot(np.dot(mu.T, np.linalg.inv(sigma)), mu) + np.dot(np.dot(mu_prev.T, np.linalg.inv(sigma_prev)), mu_prev)))
     d_h *= tmp
->>>>>>> 9e7b02d90ce99597b7d32990ebb178d2d9d8eed4
     d_h += 2
     return d_h
 
