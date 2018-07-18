@@ -1,7 +1,5 @@
-import  os
 import  numpy as np
 import  numpy.random  as rd
-import scipy as sp
 from scipy import stats as st
 
 class EM:
