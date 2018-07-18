@@ -1,81 +1,120 @@
 import numpy as np
+import numpy.random as rd
 import scipy.stats as st
 
 class SDEM:
-    def __init__(self, r, alpha, k, T, d):
+    def __init__(self, r, alpha, k, d):
         """
-        初期化
+        パラメータの初期化
         """
         self.r = r
         self.alpha = alpha
         self.k = k
-        self.T = T+1
         self.d = d
         
-        self.prob = np.zeros((self.T, self.k))
-        self.mu = np.zeros((self.T, self.k, self.d))
-        self.mu_ = np.zeros((self.T, self.k, self.d))
-        self.pi = np.zeros((self.T, self.k))
-        self.sigma = np.zeros((self.T, self.k, self.d, self.d))
-        self.sigma_ = np.zeros((self.T, self.k, self.d, self.d))
+        self.prob = np.zeros((1, self.k))
+        self.mu = np.zeros((1, self.k, self.d))
+        self.mu_ = np.zeros((1, self.k, self.d))
+        self.pi = np.zeros((1, self.k))
+        self.sigma = np.zeros((1, self.k, self.d, self.d))
+        self.sigma_ = np.zeros((1, self.k, self.d, self.d))
         
         for i in range(self.k):
-            self.pi[0, i] = 1 / self.k
-            self.mu[0, i] = np.random.uniform(size=self.d)
-            self.mu_[0, i] = self.mu[0, i] * self.pi[0, i]
-            mu_tmp = self.mu[0, i].reshape((self.d, 1))
-            self.sigma[0, i] = np.identity(self.d)# * 0.1
-            self.sigma_[0, i] = (self.sigma[0, i] + np.dot(mu_tmp, mu_tmp.T)) * self.pi[0, i]
+            self.pi[0, i] = 1 / self.k #piの初期化
+            self.mu[0, i] = rd.uniform(low=0, high=1, size=self.d) #muの初期化(一様分布)
+            self.mu_[0, i] = self.mu[0, i] * self.pi[0, i] #mu_の初期化(mu*piで計算)
+            self.sigma[0, i] = np.identity(self.d) #sigmaの初期化(単位行列)
+            self.sigma_[0, i] = (self.sigma[0, i] + np.dot(self.mu[0, i][:,np.newaxis], self.mu[0, i][:,np.newaxis].T)) * self.pi[0, i] #sigma_初期化
+
         self.t = 1
     
-    def calc_prob(self, idy, pi, mu, sigma):
-        p_ = np.zeros(self.k)
+    def calc_prob(self, y_t, pi, mu, sigma):
+        """
+        t時点のパラメータを使用し確率値の計算
+        """
         p = np.zeros(self.k)
         for i in range(self.k):
-            p[i] = st.multivariate_normal.pdf(idy, mu[i], sigma[i])
-            p_[i] = pi[i]*p[i]
-        return p, p_
-    
-    def update(self, idy):
-        """
-        更新
-        """
-        t = self.t
+            p[i] = st.multivariate_normal.pdf(y_t, mu[i], sigma[i])
+        return p
+        
+    #E-Step
+    def E_step(self, y_t, t):
+        """Eステップ(負担率gammaから各パラメータ_とpiを求める)"""
+
+        #pi*p(y|mu,sigma)を計算する
+        pi_prob = np.array([self.pi[t-1, i]*st.multivariate_normal.pdf(y_t, self.mu[t-1,i], self.sigma[t-1, i]) for i in range(self.k)])
+        gamma = (1 - self.alpha * self.r) * pi_prob / np.sum(pi_prob) + (self.alpha * self.r / self.k)
+        #piを計算する
+        self.pi[t] = (1 - self.r) * self.pi[self.t-1] + self.r * gamma
+        #mu_を計算する
+        self.mu_[t] = (1 - self.r)*self.mu_[t-1] + self.r * gamma[:, np.newaxis] * y_t
+        #sigma_を計算する
         for i in range(self.k):
-            _, p_ = self.calc_prob(idy, self.pi[t-1], self.mu[t-1], self.sigma[t-1])
-            gamma = ((1 - self.alpha * self.r) * (p_[i] / np.sum(p_))) + ((self.alpha * self.r) / self.k)
-            
-            self.pi[t, i] = ((1 - self.r) * self.pi[t-1, i]) + (self.r * gamma)
-            self.mu_[t, i] = ((1 - self.r) * self.mu_[t-1, i]) + ((self.r * gamma) * idy)
-            self.mu[t, i] = self.mu_[t, i] / self.pi[t, i]
-            
-            idy_tmp = idy.reshape((self.d, 1))
-            mu_tmp = self.mu[t, i].reshape((self.d, 1))
-            
-            self.sigma_[t, i] = ((1 - self.r) * self.sigma_[t-1, i]) + ((self.r * gamma) * np.dot(idy_tmp, idy_tmp.T))
-            self.sigma[t, i] = (self.sigma_[t, i] / self.pi[t, i]) - np.dot(mu_tmp, mu_tmp.T)
-        p, _ = self.calc_prob(idy, self.pi[t], self.mu[t], self.sigma[t])
-        self.prob[t] = p
+            self.sigma_[t, i] = (1 - self.r) * self.sigma_[t-1, i] + self.r * gamma[i] * np.dot(y_t[:, np.newaxis], y_t[:, np.newaxis].T)
+
+    #M-Step
+    def M_step(self, y_t, t):
+        """Mステップ(gammaを使って、各パラメータを更新する)"""
+        #muを計算する
+        self.mu[t] = self.mu_[t] / self.pi[t][:, np.newaxis]
+        #sigmaを計算する
+        for i in range(self.k):
+            self.sigma[t, i] = self.sigma_[t, i] / self.pi[t, i] - np.dot(self.mu[t, i][:, np.newaxis], self.mu[t, i][:, np.newaxis].T)
+    
+    def update(self, y_t):
+        """
+        """
+        #pi, mu, mu_, sigma, sigma_, probに1行追加
+        prob_tmp = np.zeros((1, self.k))
+        pi_tmp = np.zeros((1, self.k))
+        mu_tmp = np.zeros((1, self.k, self.d))
+        sigma_tmp = np.zeros((1, self.k, self.d, self.d))
+
+        self.prob = np.concatenate([self.prob, prob_tmp])
+        self.pi = np.concatenate([self.pi, pi_tmp])
+        self.mu = np.concatenate([self.mu, mu_tmp])
+        self.mu_ = np.concatenate([self.mu_, mu_tmp])
+        self.sigma = np.concatenate([self.sigma, sigma_tmp])
+        self.sigma_ = np.concatenate([self.sigma_, sigma_tmp])
+
+        #E-step
+        self.E_step(y_t, self.t)
+        #M-Step
+        self.M_step(y_t, self.t)
+        
+        self.prob[self.t] = self.calc_prob(y_t, self.pi[self.t], self.mu[self.t], self.sigma[self.t])
             
         self.t += 1
-        
+    
     def skip(self):
-        """
-        更新しない(前時点のパラメータを引き継ぐ)
-        """
-        t = self.t
+        """"""
+        #pi, mu, mu_, sigma, sigma_, probに1行追加
+        prob_tmp = np.zeros((1, self.k))
+        pi_tmp = np.zeros((1, self.k))
+        mu_tmp = np.zeros((1, self.k, self.d))
+        sigma_tmp = np.zeros((1, self.k, self.d, self.d))
+
+        self.prob = np.concatenate([self.prob, prob_tmp])
+        self.pi = np.concatenate([self.pi, pi_tmp])
+        self.mu = np.concatenate([self.mu, mu_tmp])
+        self.mu_ = np.concatenate([self.mu_, mu_tmp])
+        self.sigma = np.concatenate([self.sigma, sigma_tmp])
+        self.sigma_ = np.concatenate([self.sigma_, sigma_tmp])
+
+        # 更新をしない
         for i in range(self.k):
-            self.pi[t, i] = self.pi[t-1, i]
-            self.mu[t, i] = self.mu[t-1, i]
-            self.mu_[t, i] = self.mu_[t-1, i]
-            self.sigma[t, i] = self.sigma[t-1, i]
-            self.sigma_[t, i] = self.sigma_[t-1, i]
-            self.prob[t] = self.prob[t-i, i]
+            self.pi[self.t, i] = self.pi[self.t-1, i]
+            self.mu[self.t, i] = self.mu[self.t-1, i]
+            self.mu_[self.t, i] = self.mu_[self.t-1, i]
+            self.sigma[self.t, i] = self.sigma[self.t-1, i]
+            self.sigma_[self.t, i] = self.sigma_[self.t-1, i]
+            self.prob[self.t] = self.prob[self.t-i, i]
         self.t += 1
     
     def train(self, y):
         """
         バッチ学習
         """
-        while self.t < self.T:
+        T = len(y) #データ数(観測数)
+        while self.t < T:
             self.update(y[self.t-1])
