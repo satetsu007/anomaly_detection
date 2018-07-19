@@ -11,14 +11,14 @@ class SDEM:
         self.alpha = alpha
         self.k = k
         self.d = d
-        
+
         self.prob = np.zeros((1, self.k))
         self.mu = np.zeros((1, self.k, self.d))
         self.mu_ = np.zeros((1, self.k, self.d))
         self.pi = np.zeros((1, self.k))
         self.sigma = np.zeros((1, self.k, self.d, self.d))
         self.sigma_ = np.zeros((1, self.k, self.d, self.d))
-        
+
         for i in range(self.k):
             self.pi[0, i] = 1 / self.k #piの初期化
             self.mu[0, i] = rd.uniform(low=0, high=1, size=self.d) #muの初期化(一様分布)
@@ -27,8 +27,8 @@ class SDEM:
             self.sigma_[0, i] = (self.sigma[0, i] + np.dot(self.mu[0, i][:,np.newaxis], self.mu[0, i][:,np.newaxis].T)) * self.pi[0, i] #sigma_初期化
 
         self.t = 1
-    
-    def calc_prob(self, y_t, pi, mu, sigma):
+
+    def calc_prob(self, y_t, mu, sigma):
         """
         t時点のパラメータを使用し確率値の計算
         """
@@ -36,7 +36,7 @@ class SDEM:
         for i in range(self.k):
             p[i] = st.multivariate_normal.pdf(y_t, mu[i], sigma[i])
         return p
-        
+
     #E-Step
     def E_step(self, y_t, t):
         """Eステップ(負担率gammaから各パラメータ_とpiを求める)"""
@@ -60,7 +60,7 @@ class SDEM:
         #sigmaを計算する
         for i in range(self.k):
             self.sigma[t, i] = self.sigma_[t, i] / self.pi[t, i] - np.dot(self.mu[t, i][:, np.newaxis], self.mu[t, i][:, np.newaxis].T)
-    
+
     def update(self, y_t):
         """
         """
@@ -81,11 +81,11 @@ class SDEM:
         self.E_step(y_t, self.t)
         #M-Step
         self.M_step(y_t, self.t)
-        
-        self.prob[self.t] = self.calc_prob(y_t, self.pi[self.t], self.mu[self.t], self.sigma[self.t])
-            
+
+        self.prob[self.t] = self.calc_prob(y_t, self.mu[self.t], self.sigma[self.t])
+
         self.t += 1
-    
+
     def skip(self):
         """"""
         #pi, mu, mu_, sigma, sigma_, probに1行追加
@@ -110,7 +110,7 @@ class SDEM:
             self.sigma_[self.t, i] = self.sigma_[self.t-1, i]
             self.prob[self.t] = self.prob[self.t-i, i]
         self.t += 1
-    
+
     def train(self, y):
         """
         バッチ学習
