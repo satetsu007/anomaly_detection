@@ -40,7 +40,7 @@ class SDLE:
             if np.array_equal(x_t, np.array(A_m)):
                 delta = 1
                 self.A_det[i] += 1
-                self.flag = x_t
+                self.flag = np.array([i])
             
             self.T_t[self.t, i] = (1-self.r) * self.T_t[self.t-1,i] + delta
             if self.r == 0:

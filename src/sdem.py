@@ -3,28 +3,21 @@ import numpy.random as rd
 import scipy.stats as st
 
 class SDEM:
-    def __init__(self, r, alpha, k, d):
+    def __init__(self, r, alpha, k):
         """
         パラメータの初期化
         """
         self.r = r
         self.alpha = alpha
         self.k = k
-        self.d = d
+        self.d = None
 
-        self.prob = np.zeros((1, self.k))
-        self.mu = np.zeros((1, self.k, self.d))
-        self.mu_ = np.zeros((1, self.k, self.d))
-        self.pi = np.zeros((1, self.k))
-        self.sigma = np.zeros((1, self.k, self.d, self.d))
-        self.sigma_ = np.zeros((1, self.k, self.d, self.d))
-
-        for i in range(self.k):
-            self.pi[0, i] = 1 / self.k #piの初期化
-            self.mu[0, i] = rd.uniform(low=0, high=1, size=self.d) #muの初期化(一様分布)
-            self.mu_[0, i] = self.mu[0, i] * self.pi[0, i] #mu_の初期化(mu*piで計算)
-            self.sigma[0, i] = np.identity(self.d) #sigmaの初期化(単位行列)
-            self.sigma_[0, i] = (self.sigma[0, i] + np.dot(self.mu[0, i][:,np.newaxis], self.mu[0, i][:,np.newaxis].T)) * self.pi[0, i] #sigma_初期化
+        self.prob = None
+        self.mu = None
+        self.mu_ = None
+        self.pi = None
+        self.sigma = None
+        self.sigma_ = None
 
         self.t = 1
 
@@ -64,18 +57,10 @@ class SDEM:
     def update(self, y_t):
         """
         """
-        #pi, mu, mu_, sigma, sigma_, probに1行追加
-        prob_tmp = np.zeros((1, self.k))
-        pi_tmp = np.zeros((1, self.k))
-        mu_tmp = np.zeros((1, self.k, self.d))
-        sigma_tmp = np.zeros((1, self.k, self.d, self.d))
-
-        self.prob = np.concatenate([self.prob, prob_tmp])
-        self.pi = np.concatenate([self.pi, pi_tmp])
-        self.mu = np.concatenate([self.mu, mu_tmp])
-        self.mu_ = np.concatenate([self.mu_, mu_tmp])
-        self.sigma = np.concatenate([self.sigma, sigma_tmp])
-        self.sigma_ = np.concatenate([self.sigma_, sigma_tmp])
+        if self.t==1:
+            self.set_initial_params(y_t.shape[0])
+        
+        self.add_new_index()
 
         #E-step
         self.E_step(y_t, self.t)
@@ -85,21 +70,46 @@ class SDEM:
         self.prob[self.t] = self.calc_prob(y_t, self.mu[self.t], self.sigma[self.t])
 
         self.t += 1
+    
+    def add_new_index(self):
+        """pi, mu, mu_, sigma, sigma_, probに1行追加"""
+                
+        prob_new = np.zeros((1, self.k))
+        pi_new = np.zeros((1, self.k))
+        mu_new = np.zeros((1, self.k, self.d))
+        sigma_new = np.zeros((1, self.k, self.d, self.d))
 
-    def skip(self):
+        self.prob = np.concatenate([self.prob, prob_new])
+        self.pi = np.concatenate([self.pi, pi_new])
+        self.mu = np.concatenate([self.mu, mu_new])
+        self.mu_ = np.concatenate([self.mu_, mu_new])
+        self.sigma = np.concatenate([self.sigma, sigma_new])
+        self.sigma_ = np.concatenate([self.sigma_, sigma_new])
+    
+    def set_initial_params(self, d):
         """"""
-        #pi, mu, mu_, sigma, sigma_, probに1行追加
-        prob_tmp = np.zeros((1, self.k))
-        pi_tmp = np.zeros((1, self.k))
-        mu_tmp = np.zeros((1, self.k, self.d))
-        sigma_tmp = np.zeros((1, self.k, self.d, self.d))
+        self.d = d
+        self.prob = np.zeros((1, self.k))
+        self.mu = np.zeros((1, self.k, d))
+        self.mu_ = np.zeros((1, self.k, d))
+        self.pi = np.zeros((1, self.k))
+        self.sigma = np.zeros((1, self.k, d, d))
+        self.sigma_ = np.zeros((1, self.k, d, d))
 
-        self.prob = np.concatenate([self.prob, prob_tmp])
-        self.pi = np.concatenate([self.pi, pi_tmp])
-        self.mu = np.concatenate([self.mu, mu_tmp])
-        self.mu_ = np.concatenate([self.mu_, mu_tmp])
-        self.sigma = np.concatenate([self.sigma, sigma_tmp])
-        self.sigma_ = np.concatenate([self.sigma_, sigma_tmp])
+        for i in range(self.k):
+            self.pi[0, i] = 1 / self.k #piの初期化
+            self.mu[0, i] = rd.uniform(low=0, high=1, size=d) #muの初期化(一様分布)
+            self.mu_[0, i] = self.mu[0, i] * self.pi[0, i] #mu_の初期化(mu*piで計算)
+            self.sigma[0, i] = np.identity(d) #sigmaの初期化(単位行列)
+            self.sigma_[0, i] = (self.sigma[0, i] + np.dot(self.mu[0, i][:,np.newaxis], self.mu[0, i][:,np.newaxis].T)) * self.pi[0, i] #sigma_初期化
+        
+    def skip(self, y_t):
+        """
+        """
+        if self.t==1:
+            self.set_initial_params(y_t.shape[0])
+        
+        self.add_new_index()
 
         # 更新をしない
         for i in range(self.k):
