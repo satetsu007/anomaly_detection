@@ -3,7 +3,7 @@ from sdle import SDLE
 from sdem import SDEM
 
 class SmartSifter:
-    def __init__(self, r, beta, A, alpha, k, r_h, SDEM, SDLE):
+    def __init__(self, r, beta, A, alpha, k, r_h):
         """"""
         # sdle, sdemの共通部初期化
         self.r = r
@@ -53,11 +53,14 @@ class SmartSifter:
             
         self.t += 1
         
-    def train(self, x, y):
+    def train(self, x, y, show=False):
         """"""
         T = len(x) # データ数(観測数)
         while self.t <= T:
             self.update(x[self.t-1], y[self.t-1])
+            if show:
+                if self.t%(T*0.01)==0:
+                    print("calculated: " + str(round(self.t/T*100)) + "%")
 
     def calc_logarithmic_loss(self, y, t, sdle, sdem):
         """
