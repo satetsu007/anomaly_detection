@@ -12,11 +12,24 @@ seaborn == 0.7.1<br>
 changefinder == 0.03<br>
 jupyter == 1.0.0<br>
 
+## 実装
+
+- [x] 外れ値検出
+    - [x] マハラノビス距離
+    - [x] SmartSifter
+- [x] 変化点検出
+    - [ ] 統計的検定に基づく変化点検出
+    - [x] ChangeFinder (ライブラリインストール)
+- [ ] 異常検知
+    - [x] ナイーブベイズ法
+    - [ ] AccessTracer
+- [ ] 潜在的異常検知
+
 ## ファイル概要
 - data (ipynb上での確認に使用)
     - nikkei225_d.csv
     - usdjpy_d.csv
-    - SF10.csv ()
+    - SF10.csv
     - kddcup.data.corrected
     - header.csv
     - simulation (数値計算の確認)
