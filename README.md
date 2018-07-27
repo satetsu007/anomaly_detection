@@ -43,5 +43,9 @@ jupyter == 1.0.0<br>
     - SmartSifter.ipynb (SmartSifterの動作確認)
     - SmartSifter_for_n225.ipynb (SmartSifterを日経平均に適用)
     - workspace.ipynb (様々な動作確認用)
+    - tmp
+        - EM-algorithm.ipynb
+        - SmartSifter.ipynb
+        - SmartSifter(class未実装).ipynb
 
 
