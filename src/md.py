@@ -27,7 +27,7 @@ class mahalanobis_distance:
         self.x_md = np.concatenate((x, self.sort_index.reshape(x.shape[0], 1)), axis=1)
         self.x_md[:, -1].sort()
     
-    def check_outlier(self, theta):
+    def check_outlier(self, x, theta):
         """
         thetaを基準に外れ値検出を行う
         """
