@@ -3,8 +3,25 @@ import numpy.random as rd
 import scipy.stats as st
 
 class SDEM:
+    """
+    r: 忘却係数
+    alpha: [1.0, 2.0]
+    k: 混合数
+    d: 入力データの次元数
+    t: 時刻
+    prob: 確率分布
+    mu: 期待値ベクトル
+    mu_: mu計算用
+    pi: 混合係数
+    sigma: 分散共分散行列
+    sigma_: sigma計算用
+    """
     def __init__(self, r, alpha, k):
         """
+        r: 忘却係数
+        alpha: [1.0, 2.0]
+        k: 混合数
+
         パラメータの初期化
         """
         self.r = r
@@ -23,6 +40,10 @@ class SDEM:
 
     def calc_prob(self, y_t, mu, sigma):
         """
+        y_t: t時刻のy(連続値ベクトル)
+        mu: 期待値ベクトル
+        sigma: 分散共分散行列 
+
         t時点のパラメータを使用し確率値の計算
         """
         p = np.zeros(self.k)
@@ -32,7 +53,12 @@ class SDEM:
 
     #E-Step
     def E_step(self, y_t, t):
-        """Eステップ(負担率gammaから各パラメータ_とpiを求める)"""
+        """
+        y_t: t時刻のy(連続値ベクトル)
+        t: 時刻
+
+        Eステップ(負担率gammaから各パラメータ_とpiを求める)
+        """
 
         #pi*p(y|mu,sigma)を計算する
         pi_prob = np.array([self.pi[t-1, i]*st.multivariate_normal.pdf(y_t, self.mu[t-1,i], self.sigma[t-1, i]) for i in range(self.k)])
@@ -47,7 +73,12 @@ class SDEM:
 
     #M-Step
     def M_step(self, y_t, t):
-        """Mステップ(gammaを使って、各パラメータを更新する)"""
+        """
+        y_t: t時刻のy(連続値ベクトル)
+        t: 時刻
+
+        Mステップ(gammaを使って、各パラメータを更新する)
+        """
         #muを計算する
         self.mu[t] = self.mu_[t] / self.pi[t][:, np.newaxis]
         #sigmaを計算する
@@ -56,6 +87,9 @@ class SDEM:
 
     def update(self, y_t):
         """
+        y_t: t時刻のy(連続値ベクトル)
+
+        オンライン学習
         """
         if self.t==1:
             self.set_initial_params(y_t.shape[0])
@@ -72,7 +106,9 @@ class SDEM:
         self.t += 1
     
     def add_new_index(self):
-        """pi, mu, mu_, sigma, sigma_, probに1行追加"""
+        """
+        pi, mu, mu_, sigma, sigma_, probに1行追加
+        """
                 
         prob_new = np.zeros((1, self.k))
         pi_new = np.zeros((1, self.k))
@@ -87,7 +123,11 @@ class SDEM:
         self.sigma_ = np.concatenate([self.sigma_, sigma_new])
     
     def set_initial_params(self, d):
-        """"""
+        """
+        d: 入力データの次元
+
+        pi, mu, mu_, sigma, sigma_, prob
+        """
         self.d = d
         self.prob = np.zeros((1, self.k))
         self.mu = np.zeros((1, self.k, d))
@@ -105,6 +145,9 @@ class SDEM:
         
     def skip(self, y_t):
         """
+        y_t: t時刻のy(連続値ベクトル)
+
+        オンライン学習(更新しない)
         """
         if self.t==1:
             self.set_initial_params(y_t.shape[0])
@@ -123,6 +166,8 @@ class SDEM:
 
     def train(self, y):
         """
+        y: 連続値ベクトル
+        
         バッチ学習
         """
         T = len(y) #データ数(観測数)

@@ -1,14 +1,29 @@
 import numpy as np
 
 class SDLE:
+    """
+    r: 忘却係数 
+    beta: 正の定数
+    A: セルの分割全体
+    M: セルの数
+    A_det: 各セルに含まれた観測データ数格納用
+    t: 時刻
+    T_t: 各セルの統計量の計数
+    prob: 確率の格納用
+    flag: 更新の行われたセル番号を格納
+    """
     def __init__(self, r, beta, A):
         """
+        r: 忘却係数 
+        beta: 正の定数
+        A: セルの分割全体
+
+        パラメータの初期化
         """
         #Given
         self.A = A #セルの分割全体
         self.r = r #忘却係数 
         self.beta = beta #正の定数
-        
         
         #パラメータの初期化
         self.M = len(A) #セルの数
@@ -20,9 +35,12 @@ class SDLE:
     
     def update(self, x_t):
         """
+        x_t: t時刻のx(1次元～)
+
         オンライン学習
         """
         if isinstance(x_t, np.int64):
+        # if x_t.dtype == np.int64:
             x_t = np.array([x_t]) #1次元ベクトルを対応させる
         
         #T_t, probに1行追加
@@ -55,6 +73,8 @@ class SDLE:
     
     def train(self, x):
         """
+        x: 離散値(1次元～)
+
         バッチ学習
         """
         T = len(x) #データ数(観測数)

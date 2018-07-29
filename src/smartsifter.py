@@ -3,8 +3,31 @@ from sdle import SDLE
 from sdem import SDEM
 
 class SmartSifter:
+    """
+    r: 忘却係数(SDLE, SDEM共通パラメータ)
+    beta: 正の定数(SDLEパラメータ)
+    A: 有限分割(SDEMパラメータ)
+    alpha: (SDLEパラメータ)
+    k: 混合数(SDEMパラメータ)
+    r_h: ヘリンジャースコア計算用(SmartSifterパラメータ)
+
+    SDLE(self.r, self.beta, self.A)
+    [SDEM(self.r, self.alpha, self.k) for i in range(len(self.A))]
+    t: 時刻
+    p: 同時確率p(x, y)
+    r_h: ヘリンジャースコアのr
+    S_L: シャノン情報量(対数損失)
+    S_H: ヘリンジャースコア
+    """
     def __init__(self, r, beta, A, alpha, k, r_h):
-        """"""
+        """
+        r: 忘却係数(SDLE, SDEM共通パラメータ)
+        beta: 正の定数(SDLEパラメータ)
+        A: 有限分割(SDEMパラメータ)
+        alpha: (SDLEパラメータ)
+        k: 混合数(SDEMパラメータ)
+        r_h: ヘリンジャースコア計算用(SmartSifterパラメータ)
+        """
         # sdle, sdemの共通部初期化
         self.r = r
         # sdleのパラメータ初期化
@@ -26,7 +49,12 @@ class SmartSifter:
         self.S_H = None # ヘリンジャースコア
         
     def update(self, x, y):
-        """"""
+        """
+        x_t: t時刻のx(1次元～)
+        y_t: t時刻のy(連続値ベクトル)
+
+        オンライン学習
+        """
         # SDLE
         self.sdle.update(x)
         # SDEM: 各セルに対応する混合ガウス分布のパラメータと確率を推定
@@ -54,7 +82,12 @@ class SmartSifter:
         self.t += 1
         
     def train(self, x, y, show=False):
-        """"""
+        """
+        x: 離散値(1次元～)
+        y: 連続値ベクトル
+
+        バッチ学習
+        """
         T = len(x) # データ数(観測数)
         while self.t <= T:
             self.update(x[self.t-1], y[self.t-1])
@@ -64,6 +97,11 @@ class SmartSifter:
 
     def calc_logarithmic_loss(self, y, t, sdle, sdem):
         """
+        y: t時刻のy
+        t: 時刻
+        sdle: SDLE
+        sdem: SDEM
+
         シャノン情報量(対数損失)を計算
         """
         p_x_prev  = sdle.prob[t-1, sdle.flag]
@@ -78,9 +116,14 @@ class SmartSifter:
         return s_l
         
     def d_h_Gauss(self, mu, sigma, mu_prev, sigma_prev):
-        '''
+        """
+        mu: t時刻のmu
+        sigma: t時刻のsigma
+        mu_prev: t-1時刻のmu
+        sigma_prev: t-1時刻のsigma
+
         t時点とt-1時点におけるガウス分布間のヘリンジャー距離
-        '''
+        """
         #第2項
         m = 2 * np.linalg.det((np.linalg.inv(sigma) + np.linalg.inv(sigma_prev)) / 2) ** (-1/2) #分子
         d = (np.linalg.det(sigma) ** (1/4)) * (np.linalg.det(sigma_prev) ** (1/4)) #分母
@@ -102,9 +145,17 @@ class SmartSifter:
         return d_h
 
     def d_h_GMM(self, pi, pi_prev, mu, sigma, mu_prev, sigma_prev, k):
-        '''
+        """
+        pi: t時刻のpi
+        pi_prev: t-1時刻のpi
+        mu: t時刻のmu
+        sigma: t時刻のsigma
+        mu_prev: t-1時刻のmu
+        sigma_prev: t-1時刻のsigma
+        k: 混合数
+
         t時点とt-1時点における混合ガウス分布のヘリンジャー距離
-        '''
+        """
         d_h = 0
         for i in range(k):
             d_h_G = self.d_h_Gauss(mu[i], sigma[i], mu_prev[i], sigma_prev[i])
@@ -113,9 +164,17 @@ class SmartSifter:
         return d_h
 
     def calc_hellinger_score(self, p, p_prev, sdem, t, r, k, M):
-        '''
+        """
+        p: t時刻のp
+        p_prev: t-1時刻のp
+        sdem: SDEM
+        t: 時刻
+        r: 忘却係数
+        k: 混合数
+        M: Aの有限分割数
+
         ヘリンジャースコアを計算する関数
-        '''
+        """
         s_h = 0
         for m in range(M):
             d_h = self.d_h_GMM(sdem[m].pi[t], sdem[m].pi[t-1] ,sdem[m].mu[t], sdem[m].sigma[t], 
