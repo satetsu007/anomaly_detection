@@ -25,8 +25,8 @@ jupyter == 1.0.0<br>
     - [ ] AccessTracer
 - [ ] 潜在的異常検知
 - [x] 中華料理店過程
-    - [x]生成過程
-    - [x]クラスタリング 
+    - [x] 生成過程
+    - [x] クラスタリング 
 
 ## ファイル概要
 - data (ipynb上での確認に使用)
@@ -46,6 +46,8 @@ jupyter == 1.0.0<br>
     - sdem.py (SDEMクラス)
     - sdle.py (SDLEクラス)
     - smartsifter.py (SmartSifterクラス)
+    - crp.py(中華料理店過程)
+    - dpm.py(ディリクレ過程によるクラスタリング)
 - ipynb (プログラムの動作確認, 動作方法)
     - AccessTracer.ipynb
     - ChangeFinder.ipynb (ChangeFinderを日経平均に適用)
