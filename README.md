@@ -59,10 +59,13 @@ jupyter == 1.0.0<br>
     - SF10-test.ipynb (SF10.ipynbの実行が必須)
     - SmartSifter.ipynb (SmartSifterの動作確認)
     - tmp
+        - CRP.ipynb
+        - DPM_memo.ipynb
         - EM-algorithm.ipynb
         - EM-algorithm(n-dim).ipynb (EMアルゴリズムの動作確認)
         - HMM.ipynb
         - HMM(Baum-Welch).ipynb
+        - SmartSifter_class.ipynb
         - SmartSifter.ipynb
         - SmartSifter(class未実装).ipynb
         - SmartSifter_for_n225.ipynb (SmartSifterを日経平均に適用)
