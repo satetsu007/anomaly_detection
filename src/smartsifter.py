@@ -81,7 +81,7 @@ class SmartSifter:
             
         self.t += 1
         
-    def train(self, x, y, show=False):
+    def train(self, x, y, verbose=0):
         """
         x: 離散値(1次元～)
         y: 連続値ベクトル
@@ -91,7 +91,7 @@ class SmartSifter:
         T = len(x) # データ数(観測数)
         while self.t <= T:
             self.update(x[self.t-1], y[self.t-1])
-            if show:
+            if verbose:
                 if self.t%(T*0.01)==0:
                     print("calculated: " + str(round(self.t/T*100)) + "%")
 
