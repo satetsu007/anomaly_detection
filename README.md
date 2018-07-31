@@ -29,6 +29,7 @@ jupyter == 1.0.0<br>
     - [x] クラスタリング 
 
 ## ファイル概要
+
 - data (ipynb上での確認に使用)
     - nikkei225_d.csv
     - usdjpy_d.csv
@@ -46,24 +47,25 @@ jupyter == 1.0.0<br>
     - sdem.py (SDEMクラス)
     - sdle.py (SDLEクラス)
     - smartsifter.py (SmartSifterクラス)
-    - crp.py(中華料理店過程)
-    - dpm.py(ディリクレ過程によるクラスタリング)
+    - crp.py (中華料理店過程)
+    - dpm.py (ディリクレ過程によるクラスタリング)
 - ipynb (プログラムの動作確認, 動作方法)
     - AccessTracer.ipynb
     - ChangeFinder.ipynb (ChangeFinderを日経平均に適用)
-    - EM-algorithm(n-dim).ipynb (EMアルゴリズムの動作確認)
-    - HMM.ipynb
-    - HMM(Baum-Welch).ipynb
+    - DPM.ipynb (中華料理店過程の動作確認)
     - Mahalanobis_Distance.ipynb (マハラノビス距離の動作確認)
     - NaiveBayes.ipynb (ナイーブベイズ法の動作確認)
     - SF10.ipynb (SmartSigterをSF10.csvに適用)
     - SF10-test.ipynb (SF10.ipynbの実行が必須)
     - SmartSifter.ipynb (SmartSifterの動作確認)
-    - SmartSifter_for_n225.ipynb (SmartSifterを日経平均に適用)
-    - workspace.ipynb (様々な動作確認用)
     - tmp
         - EM-algorithm.ipynb
+        - EM-algorithm(n-dim).ipynb (EMアルゴリズムの動作確認)
+        - HMM.ipynb
+        - HMM(Baum-Welch).ipynb
         - SmartSifter.ipynb
         - SmartSifter(class未実装).ipynb
+        - SmartSifter_for_n225.ipynb (SmartSifterを日経平均に適用)
+        - workspace.ipynb (様々な動作確認用)
 
 
