@@ -168,9 +168,29 @@ class SDHM:
         """
         
         for k in range(self.K):
-            self.pi[self.j+1, k] = self.calc_pi(self.r, self.pi[self.j, k], self.c[self.j, k])
-            self.gamma_[self.j+1, k] = self.calc_gamma_(self.r, self.N1, self.gamma_[self.j, k], self.tau[self.j, k], c)
-            self.gamma[self.j+1, k] = self.calc_gamma(self.Tj, self.N1, self.gamma_[self.j+1, k])
+            for i in range(self.N1):
+                for j in range(self.N1):
+                    # piの更新
+                    self.pi[self.j+1, k] = (1 - self.r) * self.pi[self.j, k] + self.r * self.c[self.j, k]
+                    # gamma_の更新
+                    self.gamma_[self.j+1, k, i] = (1 - self.r) * self.gamma[self.j, k, i] + self.r * self.c[self.j, k] * np.sum(self.tau[self.j, k, 0, i, :])
+                    # gammaの更新
+                    self.gamma[self.j+1, k, i] = self.gamma_[self.j+1, k, i] / np.sum(self.gamma_[self.j+1, k])
+                    # a_の更新
+                    self.a_[self.j+1, k, i, j] = (1 - self.r) * self.a_[self.j, k, i, j] + self.r * self.c[self.j, k] * np.sum(self.tau[self.j, k, :-self.n, i, j])
+                    # aの更新
+                    self.a[self.j+1, k, i, j] = self.a_[self.j+1, k, i, j] / np.sum(self.a_[self.j+1, k, i, :])
+            for s in range(self.N1):
+                for y in range(self.N2):
+                    # b_の更新
+                    self.b_[self.j+1, k, s, y] = (1 - self.r) * self.b_[self.j, k, s, y] + self.r * self.c[self.j, k] * np.sum([self.tau_[self.j, k, t, s] for t, yt in enumerate(yj) if y==int(yt)])
+                    # bの更新
+                    self.b[self.j+1, k, s, y] = self.b_[self.j+1, k, s, y] / np.sum(self.b_[self.j+1, k, s])
+
+
+            #self.pi[self.j+1, k] = self.calc_pi(self.r, self.pi[self.j, k], self.c[self.j, k])
+            #self.gamma_[self.j+1, k] = self.calc_gamma_(self.r, self.N1, self.gamma_[self.j, k], self.tau[self.j, k], self.c[self.j, k])
+            #self.gamma[self.j+1, k] = self.calc_gamma(self.Tj, self.N1, self.gamma_[self.j+1, k])
             #self.a_[self.j+1, k] = 
 
     def calc_pi(self, r, pi, c):
@@ -223,4 +243,6 @@ class SDHM:
             self.set_initial_params()
         self.add_new_index()
         self.E_step(yj)
-        #self.M_step()
+        self.M_step(yj)
+
+        self.j += 1
