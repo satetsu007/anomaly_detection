@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import numpy as np
 from sdle import SDLE
 from sdem import SDEM

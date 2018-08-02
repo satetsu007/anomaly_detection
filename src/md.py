@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import numpy as np
 
 class mahalanobis_distance:
@@ -55,7 +57,7 @@ class mahalanobis_distance:
         thetaを基準に外れ値検出を行う
         """
         flag = []
-        for i, imd in enumerate(self.md):
+        for imd in enumerate(self.md):
             if imd > theta:
                 flag.append(1)
             else:

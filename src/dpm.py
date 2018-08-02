@@ -1,4 +1,5 @@
-#-*- coding:utf-8 -*-
+# coding: utf-8
+
 import os
 import numpy as np
 import numpy.random as rd
@@ -255,7 +256,3 @@ class DPM:
             log_p -= np.log(i+alpha)
 
         return log_p
-
-
-if __name__ == '__main__':
-    main()
