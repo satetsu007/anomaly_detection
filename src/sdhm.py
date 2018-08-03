@@ -172,25 +172,27 @@ class SDHM:
             for i in range(self.N1):
                 for j in range(self.N1):
                     # piの更新
-                    self.pi[self.j+1, k] = (1 - self.r) * self.pi[self.j, k] + self.r * self.c[self.j, k]
-                    # gamma_の更新
-                    self.gamma_[self.j+1, k, i] = (1 - self.r) * self.gamma[self.j, k, i] + self.r * self.c[self.j, k] * np.sum(self.tau[self.j, k, 0, i, :])
+                    self.pi[self.j+1, k] = (1 - self.r) * self.pi[self.j, k] + self.r * self.c[self.j, k] #OK
+                    # gamma_の更新 ##########self.gamma→self.gamma_ ではないか？？#####################
+                    self.gamma_[self.j+1, k, i] = (1 - self.r) * self.gamma[self.j, k, i] + self.r * self.c[self.j, k] * np.sum(self.tau[self.j, k, 0, i, :]) ### self.tau[self.j, k, 0, i, j]に変更して"+="で良いのでは？
+                                                                                                                                                              ### np.sumを使用も可だがN1回分だけ値を代入していることになっている(余分な計算？))
                     # a_の更新
-                    self.a_[self.j+1, k, i, j] = (1 - self.r) * self.a_[self.j, k, i, j] + self.r * self.c[self.j, k] * np.sum(self.tau[self.j, k, :-self.n, i, j])
+                    self.a_[self.j+1, k, i, j] = (1 - self.r) * self.a_[self.j, k, i, j] + self.r * self.c[self.j, k] * np.sum(self.tau[self.j, k, :-self.n, i, j]) #OK
             for i in range(self.N1):
                 for j in range(self.N1):
                     # gammaの更新
-                    self.gamma[self.j+1, k, i] = self.gamma_[self.j+1, k, i] / np.sum(self.gamma_[self.j+1, k])
+                    self.gamma[self.j+1, k, i] = self.gamma_[self.j+1, k, i] / np.sum(self.gamma_[self.j+1, k]) # np.sum(self.gamma_[self.j+1, k]) は全て1だがいいのか?? ⇛ 多分OK
+                    #print("sum", np.sum(self.gamma_[self.j+1, k]))
                     # aの更新
-                    self.a[self.j+1, k, i, j] = self.a_[self.j+1, k, i, j] / np.sum(self.a_[self.j+1, k, i, :])
+                    self.a[self.j+1, k, i, j] = self.a_[self.j+1, k, i, j] / np.sum(self.a_[self.j+1, k, i, :]) #OK
             for s in range(self.N1):
                 for y in range(self.N2):
                     # b_の更新
-                    self.b_[self.j+1, k, s, y] = (1 - self.r) * self.b_[self.j, k, s, y] + self.r * self.c[self.j, k] * np.sum([self.tau_[self.j, k, t, s] for t, yt in enumerate(yj) if y==int(yt)])
+                    self.b_[self.j+1, k, s, y] = (1 - self.r) * self.b_[self.j, k, s, y] + self.r * self.c[self.j, k] * np.sum([self.tau_[self.j, k, t, s] for t, yt in enumerate(yj) if y==int(yt)]) #OK
             for s in range(self.N1):
                 for y in range(self.N2):
                     # bの更新
-                    self.b[self.j+1, k, s, y] = self.b_[self.j+1, k, s, y] / np.sum(self.b_[self.j+1, k, s])
+                    self.b[self.j+1, k, s, y] = self.b_[self.j+1, k, s, y] / np.sum(self.b_[self.j+1, k, s]) #OK
   
     def update(self, yj):
         """
