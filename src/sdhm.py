@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import numpy as np
 from baumwelch import BaumWelch
 
@@ -31,10 +33,10 @@ class SDHM:
         r: 忘却係数
         nu: 推定係数
         K: HMMの混合数
-        n: HMMの次数(n=1)
         Tj: j番目のセッションの長さ
         N1: 総状態変数
         N2: 総出力シンボル数
+        n: HMMの次数(n=1)
         """
 
         # Given
@@ -70,7 +72,7 @@ class SDHM:
         N2: 総出力シンボル数
 
         gamma, gamma_, a, a_, b, b_の初期化
-        一様乱数
+        一様乱数(?)で初期化する必要有
         """
 
         self.c = np.zeros((1, self.K))
@@ -130,7 +132,9 @@ class SDHM:
 
     def calc_prob_k(self, alpha):
         """
-        k番目のHMMからyjが生成される確率
+        alpha: t時点で状態siにあり, その時点までの系列を出力する確率
+
+        k番目のHMMからyjが生成される確率を計算
         """
         
         prob_k = np.sum(alpha[-1])
@@ -138,6 +142,9 @@ class SDHM:
     
     def calc_prob(self, pi, prob_k):
         """
+        pi: 混合係数
+        prob_k: k番目のHMMからyjが生成される確率
+        
         HMMからyjが生成される確率
         """
         
@@ -149,6 +156,7 @@ class SDHM:
         yj: j番目のセッション
 
         c, tau, tau_の計算
+        tau, tau_の計算にはBaum-Welchアルゴリズムを使用
         E-step
         """
         
@@ -166,6 +174,10 @@ class SDHM:
 
     def M_step(self, yj):
         """
+        yj: j番目のセッション
+
+        pi, gamma, a. bの計算
+        M-step
         """
         
         for k in range(self.K):
@@ -196,6 +208,9 @@ class SDHM:
   
     def update(self, yj):
         """
+        yj: j番目のセッション
+
+        オンライン学習
         """
         
         if self.j == 0:
@@ -205,3 +220,14 @@ class SDHM:
         self.M_step(yj)
 
         self.j += 1
+
+    def train(self, y):
+        """
+        y: 入力データ(離散値, 複数のセッション)
+
+        バッチ学習
+        """
+
+        M = len(y) # 総セッション数
+        while self.j < M:
+            self.update(y[self.j])

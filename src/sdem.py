@@ -1,3 +1,5 @@
+# coding: utf-8
+
 import numpy as np
 import numpy.random as rd
 import scipy.stats as st
