@@ -75,6 +75,7 @@ class SDHM:
         """
 
         self.c = np.zeros((1, self.K))
+        #self.pi = self.generate_init_matrix(1, self.K)
         self.pi = np.ones((1, self.K)) / self.K
         
         self.gamma = np.zeros((1, self.K, self.N1))
