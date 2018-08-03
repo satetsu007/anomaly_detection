@@ -57,7 +57,7 @@ class mahalanobis_distance:
         thetaを基準に外れ値検出を行う
         """
         flag = []
-        for imd in enumerate(self.md):
+        for imd in self.md:
             if imd > theta:
                 flag.append(1)
             else:
