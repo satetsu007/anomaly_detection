@@ -72,36 +72,55 @@ class SDHM:
         N2: 総出力シンボル数
 
         gamma, gamma_, a, a_, b, b_の初期化
-        一様乱数(?)で初期化する必要有
         """
 
         self.c = np.zeros((1, self.K))
         self.pi = np.ones((1, self.K)) / self.K
         
-        #self.gamma = np.zeros((1, self.K, self.N1))
-        #self.gamma_ = np.zeros((1, self.K, self.N1))
-        #self.a = np.zeros((1, self.K, self.N1, self.N1))
-        #self.a_ = np.zeros((1, self.K, self.N1, self.N1))
-        #self.b = np.zeros((1, self.K, self.N1, self.N2))
-        #self.b_ = np.zeros((1, self.K, self.N1, self.N2))
+        self.gamma = np.zeros((1, self.K, self.N1))
+        self.gamma_ = np.zeros((1, self.K, self.N1))
+        self.a = np.zeros((1, self.K, self.N1, self.N1))
+        self.a_ = np.zeros((1, self.K, self.N1, self.N1))
+        self.b = np.zeros((1, self.K, self.N1, self.N2))
+        self.b_ = np.zeros((1, self.K, self.N1, self.N2))
 
-        self.gamma = np.ones((1, self.K, self.N1)) / self.N1
-        self.gamma_ = self.gamma.copy()
+        # 初期化失敗例 (パラメータを全て同一値で初期化)
+        #self.gamma = np.ones((1, self.K, self.N1)) / self.N1
+        #self.gamma_ = self.gamma.copy()
         #self.a = np.ones((1, self.K, self.N1, self.N1)) / self.N1
         #self.a_ = self.a.copy()
         #self.b = np.ones((1, self.K, self.N1, self.N2)) / self.N2
-        #elf.b_ = self.b.copy()
+        #self.b_ = self.b.copy()
 
         self.tau = np.zeros((1, self.K, self.Tj, self.N1, self.N1))
         self.tau_ = np.zeros((1, self.K, self.Tj, self.N1))
 
-        #for i in range(self.K):
-        #    self.gamma = np.zeros((1, self.K, self.N1))
-        #    self.gamma_ = np.zeros((1, self.K, self.N1))
-        #    self.a = np.zeros((1, self.K, self.N1, self.N1))
-        #    self.a_ = np.zeros((1, self.K, self.N1, self.N1))
-        #    self.b = np.zeros((1, self.K, self.N1, self.N2))
-        #    self.b_ = np.zeros((1, self.K, self.N1, self.N2))
+        # generate_init_matrixを使用し, 乱数によりパラメータを初期化
+        for i in range(self.K):
+            self.gamma[self.j, i] = self.generate_init_matrix(1, self.N1)[0]
+            self.gamma_[self.j, i] = self.generate_init_matrix(1, self.N1)[0]
+            self.a[self.j, i] = self.generate_init_matrix(self.N1, self.N1)
+            self.a_[self.j, i] = self.generate_init_matrix(self.N1, self.N1)
+            self.b[self.j, i] = self.generate_init_matrix(self.N1, self.N2)
+            self.b_[self.j, i] = self.generate_init_matrix(self.N1, self.N2)
+
+    def generate_init_matrix(self, R, C):
+        """
+        R: 行数
+        C: 列数
+
+        適当な初期値をもつR✕C行列を生成する関数
+        """
+
+        #空の行列を作成
+        M = np.zeros((R, C))
+        #適当な値を行ごとに代入していく(各行の合計が1になれば良い)
+        for i in range(R):
+            rand = np.random.rand(C) #[0, 1]の一様乱数生成
+            rand = rand / np.sum(rand) #合計が1になるようにする
+            M[i] = rand
+        
+        return M
 
     def add_new_index(self):
         """
@@ -181,20 +200,18 @@ class SDHM:
         """
         
         for k in range(self.K):
+            # piの更新
+            self.pi[self.j+1, k] = (1 - self.r) * self.pi[self.j, k] + self.r * self.c[self.j, k] #OK
             for i in range(self.N1):
+                # gamma_の更新
+                self.gamma_[self.j+1, k, i] = (1 - self.r) * self.gamma_[self.j, k, i] + self.r * self.c[self.j, k] * np.sum(self.tau[self.j, k, 0, i, :]) #OK
                 for j in range(self.N1):
-                    # piの更新
-                    self.pi[self.j+1, k] = (1 - self.r) * self.pi[self.j, k] + self.r * self.c[self.j, k] #OK
-                    # gamma_の更新 ##########self.gamma→self.gamma_ ではないか？？#####################
-                    self.gamma_[self.j+1, k, i] = (1 - self.r) * self.gamma[self.j, k, i] + self.r * self.c[self.j, k] * np.sum(self.tau[self.j, k, 0, i, :]) ### self.tau[self.j, k, 0, i, j]に変更して"+="で良いのでは？
-                                                                                                                                                              ### np.sumを使用も可だがN1回分だけ値を代入していることになっている(余分な計算？))
                     # a_の更新
                     self.a_[self.j+1, k, i, j] = (1 - self.r) * self.a_[self.j, k, i, j] + self.r * self.c[self.j, k] * np.sum(self.tau[self.j, k, :-self.n, i, j]) #OK
             for i in range(self.N1):
+                # gammaの更新
+                self.gamma[self.j+1, k, i] = self.gamma_[self.j+1, k, i] / np.sum(self.gamma_[self.j+1, k]) #OK
                 for j in range(self.N1):
-                    # gammaの更新
-                    self.gamma[self.j+1, k, i] = self.gamma_[self.j+1, k, i] / np.sum(self.gamma_[self.j+1, k]) # np.sum(self.gamma_[self.j+1, k]) は全て1だがいいのか?? ⇛ 多分OK
-                    #print("sum", np.sum(self.gamma_[self.j+1, k]))
                     # aの更新
                     self.a[self.j+1, k, i, j] = self.a_[self.j+1, k, i, j] / np.sum(self.a_[self.j+1, k, i, :]) #OK
             for s in range(self.N1):
