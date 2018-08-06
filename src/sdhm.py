@@ -168,7 +168,8 @@ class SDHM:
         HMMからyjが生成される確率
         """
         
-        prob = np.sum(pi * prob_k)
+        prob = np.dot(pi, prob_k)
+
         return prob
 
     def E_step(self, yj):
@@ -189,8 +190,8 @@ class SDHM:
             prob_k[k] = self.calc_prob_k(bm.alpha)
         
         prob = self.calc_prob(self.pi[self.j], prob_k)
-        
-        self.c[self.j] = (1 - self.nu * self.r) * (prob_k / prob) + self.nu * self.r / self.K
+        for k in range(self.K):
+            self.c[self.j, k] = (1 - self.nu * self.r) * (self.pi[self.j, k] * prob_k[k] / prob) + self.nu * self.r / self.K
 
     def M_step(self, yj):
         """
