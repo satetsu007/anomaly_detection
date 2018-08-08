@@ -80,7 +80,6 @@ class BaumWelch:
         for t in range(self.Tj-1):
             #分母(denominator)を計算する
             d = np.sum([np.sum(self.alpha[t, i] * a[i, :] * b[:, yj[t+1]] * self.beta[t+1, :]) for i in range(self.N1)])
-
             for i in range(self.N1):
                 for j in range(self.N1):
                     self.tau[t, i, j] = self.alpha[t, i] * a[i, j] * b[j, yj[t+1]] * self.beta[t+1, j] / d
