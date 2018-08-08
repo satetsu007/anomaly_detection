@@ -20,6 +20,7 @@ jupyter == 1.0.0<br>
 - [x] 変化点検出
     - [ ] 統計的検定に基づく変化点検出
     - [x] ChangeFinder (ライブラリインストール)
+    - [ ] ChangeFinder (2次元以上対応版)
 - [x] 異常検知
     - [x] ナイーブベイズ法
     - [x] AccessTracer
@@ -47,8 +48,10 @@ jupyter == 1.0.0<br>
     - dpm.py (ディリクレ過程によるクラスタリング)
     - em_2dim.py (2次元の入力に対応したEMアルゴリズム)
     - em.py (n次元の入力に対応したEMアルゴリズム)
+    - le (レビンソン法クラス)
     - md.py (マハラノビス距離クラス)
     - sdem.py (SDEMクラス)
+    - sdar.py (SDARクラス)
     - sdhm.py (SDHMクラス)
     - sdle.py (SDLEクラス)
     - smartsifter.py (SmartSifterクラス)
