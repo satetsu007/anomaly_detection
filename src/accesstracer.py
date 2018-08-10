@@ -6,6 +6,20 @@ from sdhm import SDHM
 
 class AccessTracer:
     """
+    r: 忘却係数
+    nu: 推定係数
+    K: HMMの混合数
+    n: HMMの次数(n=1)
+    j: j番目
+    Tj: j番目のセッションの長さ
+    N1: 総状態変数
+    N2: 総出力シンボル数
+    [SDHM(self.r, self.nu, self.K, self.Tj, self.N1, self.N2, n=1) for k in range(1, self.K+1)]
+
+    L_L: 対数損失 (Logarithmic Loss)
+    PSC: 予測的確率的コンプレキシティ (Predictive Stochastic Complexity)
+    S_A: 異常スコア (Score of Anomary)
+    N_K: 最適な混合数 (Number of K)
     """
     def __init__(self, r, nu, K, Tj, N1, N2, n=1):
         """

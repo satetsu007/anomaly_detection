@@ -4,25 +4,47 @@ import numpy.random as rd
 from levinsondurbin import LevinsonDurbin, LevinsonDurbin_1Dim
 
 class SDAR:
-    def __init__(self, k, r):
-        '''
-        '''
+    """
+    r
+    k
+    x
+    d
+    t
+    mu_hat
+    C
+    x_t_hat
+    omega_hat
+    sigma_hat
+    """
+    def __init__(self, r, k):
+        """
+        r: 忘却係数
+        k: ARモデルの次数
+
+        パラメータの初期化
+        """
         # Given
-        self.k = k # ARモデルの次数
         self.r = r # 忘却係数
+        self.k = k # ARモデルの次数
 
         # 初期化
+        self.x = None # 入力されたデータ
+        self.d = None #入力データの次元
+        self.t = 1 # 時点
+
+        # パラメータの初期化
         self.mu_hat = None
         self.C = None
         self.x_t_hat = None
         self.omega_hat = None
         self.sigma_hat = None
 
-        self.x = None # 入力されたデータ
-        self.d = None #入力データの次元
-        self.t = 1 # 時点
-
     def update(self, x_t):
+        """
+        x_t: t時点のx
+
+        オンライン学習
+        """
 
         if self.t == 1:
             self.set_initial_params(x_t)
@@ -70,8 +92,12 @@ class SDAR:
 
 
     def set_initial_params(self, x_t):
-        '''
-        '''
+        """
+        x_t: t時点のx
+
+        d, x, x_t_hat, mu_hat, C, omega_hat, sigma_hatの初期化
+        """
+
         self.d = x_t.shape[0] # 入力データの次元を取得
         self.x = np.zeros((1, self.d)) # 入力データ格納用
         self.x_t_hat = np.zeros((1, self.d)) # x_t^の初期化
@@ -81,8 +107,9 @@ class SDAR:
         self.sigma_hat = np.eye(self.d)[np.newaxis, :] # Σ^の初期化: 単位行列
 
     def add_new_index(self):
-        '''
-        '''
+        """
+        x, x_t_hat, mu_hat, C, omega_hat, sigma_hatに1行追加
+        """
 
         x_new = np.zeros((1, self.d))
         mu_new = np.zeros((1, self.d))
@@ -102,13 +129,15 @@ class SDAR:
 class SDAR_1Dim:
     """
     """
-    def __init__(self, k, r):
+    def __init__(self, r, k):
         """
+        r: 忘却係数
+        k: ARモデルの次数
         """
 
         # Given
-        self.k = k # ARモデルの次数
         self.r = r # 忘却係数
+        self.k = k # ARモデルの次数
 
         # 初期化
         self.mu_hat = None
@@ -132,22 +161,29 @@ class SDAR_1Dim:
         # x_t を格納
         self.x[self.t] = x_t
 
-        # μ^の更新
-        self.mu_hat[self.t] = (1 - self.r) * self.mu_hat[self.t-1] + self.r * x_t
+        # 更新しないで、前の時点の値を引き継ぐ
+        if self.t < self.k+1:
+            self.mu_hat[self.t] = self.mu_hat[self.t-1]
+            self.sigma_hat[self.t] = self.sigma_hat[self.t-1]
 
-        # Cの更新
-        for j in range(self.k+1):
-            if self.t > j:
-                self.C[self.t, j] = (1 - self.r) * self.C[self.t-1, j] + self.r \
-                                * (x_t - self.mu_hat[self.t]) * (self.x[self.t-j] - self.mu_hat[self.t])
+        else:
+            # μ^の更新
+            self.mu_hat[self.t] = (1 - self.r) * self.mu_hat[self.t-1] + self.r * x_t
 
-        if self.t > self.k:
+            # Cの更新
+            for j in range(self.k+1):
+                    self.C[self.t, j] = (1 - self.r) * self.C[self.t-1, j] + self.r \
+                                    * (x_t - self.mu_hat[self.t]) * (self.x[self.t-j] - self.mu_hat[self.t])
+
             # Yule-Waker方程式を解く
             self.omega_hat[self.t], _ = LevinsonDurbin_1Dim(self.C[self.t], self.k)
+            self.omega_hat[self.t] = - self.omega_hat[self.t]
+            
             # x^の計算
             self.x_t_hat[self.t] = self.mu_hat[self.t]
             for i in range(self.k):
                 self.x_t_hat[self.t] += self.omega_hat[self.t, i+1] * (self.x[self.t-i-1] - self.mu_hat[self.t])
+            
             # σの計算
             self.sigma_hat[self.t] = (1 - self.r) * self.sigma_hat[self.t-1] + \
                                 self.r * ((x_t - self.x_t_hat[self.t]) ** 2)
@@ -160,8 +196,8 @@ class SDAR_1Dim:
 
         self.x = np.zeros((1, 1))
         self.x_t_hat = np.zeros((1, 1))
-        # self.C = np.zeros((1, self.k+1))
-        self.C = (np.random.random(self.k+1) / 100.0)[np.newaxis, :]
+        self.C = np.zeros((1, self.k+1))
+        # self.C = (np.random.random(self.k+1) / 100.0)[np.newaxis, :]
         self.mu_hat = rd.uniform(low=0, high=1, size=1)[:, np.newaxis]
         self.sigma_hat = rd.uniform(low=0, high=1, size=1)[:, np.newaxis]
         self.omega_hat = np.zeros((1, self.k+1))

@@ -20,7 +20,7 @@ jupyter == 1.0.0<br>
 - [x] 変化点検出
     - [ ] 統計的検定に基づく変化点検出
     - [x] ChangeFinder (ライブラリインストール)
-    - [ ] ChangeFinder (2次元以上対応版)
+    - [x] ChangeFinder (2次元以上対応版)
 - [x] 異常検知
     - [x] ナイーブベイズ法
     - [x] AccessTracer

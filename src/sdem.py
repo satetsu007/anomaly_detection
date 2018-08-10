@@ -128,7 +128,7 @@ class SDEM:
         """
         d: 入力データの次元
 
-        pi, mu, mu_, sigma, sigma_, prob
+        pi, mu, mu_, sigma, sigma_, probの初期化
         """
         self.d = d
         self.prob = np.zeros((1, self.k))
