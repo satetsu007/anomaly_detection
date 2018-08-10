@@ -35,23 +35,27 @@ jupyter == 1.0.0<br>
     - nikkei225_d.csv
     - usdjpy_d.csv
     - SF10.csv
-    - kddcup.data.corrected
+    - kddcup.data.corrected (SmartSifterのベンチマーク)
     - header.csv
     - simulation (数値計算の確認)
         - hellinger_simulate.xlsx
         - SDEM_simulate.xlsx
         - SDLE_simulate.xlsx
+    - masquarade-data (AccessTracerのベンチマーク)
+        - label
+        - UserXX
 - src (作成プログラム)
     - accesstracer.py (AccessTreserクラス)
     - baumwelch.py (Baum-Welchアルゴリズム)
+    - changefinder.py (ChangeFinderクラス)
     - crp.py (中華料理店過程)
     - dpm.py (ディリクレ過程によるクラスタリング)
     - em_2dim.py (2次元の入力に対応したEMアルゴリズム)
     - em.py (n次元の入力に対応したEMアルゴリズム)
-    - le (レビンソン法クラス)
+    - levunsondurbin.py (レビンソン法)
     - md.py (マハラノビス距離クラス)
-    - sdem.py (SDEMクラス)
     - sdar.py (SDARクラス)
+    - sdem.py (SDEMクラス)
     - sdhm.py (SDHMクラス)
     - sdle.py (SDLEクラス)
     - smartsifter.py (SmartSifterクラス)
@@ -66,6 +70,13 @@ jupyter == 1.0.0<br>
     - SmartSifter.ipynb (SmartSifterの動作確認)
     - unix_command_anomaly_detection (SmartSifterをunixコマンドデータに適用)
     - tmp
+        - AccessTracer_memo.ipynb
+        - Baum-Welch.ipynb
+        - Baum-Welch(kenji).ipynb
+        - Baum-Welch確認.ipynb
+        - ChangeFinder(1-dim)-Copy1.ipynb (1次元データにChangeFinderライブラリを使用)
+        - ChangeFinder(1-dim).ipynb (1次元データに実装したChangeFinderを使用)
+        - ChangeFinderエラー原因特定.ipynb
         - CRP.ipynb
         - DPM_memo.ipynb
         - DPM_memo.ipynb
@@ -73,6 +84,11 @@ jupyter == 1.0.0<br>
         - EM-algorithm(n-dim).ipynb (EMアルゴリズムの動作確認)
         - HMM.ipynb
         - HMM(Baum-Welch).ipynb
+        - SDAR.ipynb
+        - SDHM-Copy1.ipynb
+        - SDHM.ipynb
+        - SDHM(n=1).ipynb
+        - SDHM(雛形).ipynb
         - SmartSifter_class.ipynb
         - SmartSifter.ipynb
         - SmartSifter(class未実装).ipynb

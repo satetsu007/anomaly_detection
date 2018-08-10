@@ -10,13 +10,15 @@ class ChangeFinder:
     T: 第1段階目の平滑化のwindowサイズ
     T_: 第2段階目の平滑化のwindowサイズ
     k: ARモデルの次数
+    d: 入力データ(x)の次元
 
     sdar_f: 第1段階目の学習に使用 (SDARアルゴリズム)
     sdar_s: 第2段階目の学習に使用 (SDARアルゴリズム)
 
     S_X: 第1段階学習スコア (x_tの対数損失)
-    S_T: 第2段階学習スコア (yの対数損失)
-    y: 平滑化(移動平均)
+    S_T: t時点の変化点スコア (L_Lの移動平均)
+    L_L: 第2段階学習スコア (yの対数損失)
+    y: 平滑化(S_Xの移動平均)
     """
     
     def __init__(self, r, T, T_, k):
@@ -33,10 +35,10 @@ class ChangeFinder:
         self.T = T
         self.T_ = T_
         self.k = k
+        self.d = None
 
-        #self.sdar_f = SDAR(r, k)
-        self.sdar_f = SDAR_1Dim(r, k)
-        self.sdar_s = SDAR_1Dim(r, k)
+        self.sdar_f = None
+        self.sdar_s = SDAR_1Dim(self.r, self.k)
         self.w = None
 
         self.S_X = None
@@ -51,8 +53,17 @@ class ChangeFinder:
         """
         x_t: t時点のx
 
-        S_X, y, S_T, L_Lの初期化
+        d, sdar_f, S_X, y, S_T, L_Lの初期化
         """
+
+        if type(x_t) == np.float64:
+            self.d = 1
+        else:
+            self.d = len(x_t)
+        if self.d == 1:
+            self.sdar_f = SDAR_1Dim(self.r, self.k)
+        else: 
+            self.sdar_f = SDAR(self.r, self.k)
 
         self.S_X = np.zeros((1, 1))
         self.y = np.zeros((1, 1))
@@ -120,10 +131,12 @@ class ChangeFinder:
         # 計算不可(データ不足)
         if self.t < self.k+1:
             self.S_X[self.t] = 0
-
+        # 対数損失の計算
         else:
-            p = self.p_norm(x_t, self.sdar_f.x_t_hat[self.t-1], self.sdar_f.sigma_hat[self.t-1])
-            #p = st.multivariate_normal.pdf(x_t, self.sdar_f.x_t_hat[self.t-1], self.sdar_f.sigma_hat[self.t-1])
+            if self.d == 1:
+                p = self.p_norm(x_t, self.sdar_f.x_t_hat[self.t-1], self.sdar_f.sigma_hat[self.t-1])
+            else:
+                p = st.multivariate_normal.pdf(x_t, self.sdar_f.x_t_hat[self.t-1], self.sdar_f.sigma_hat[self.t-1])
             self.S_X[self.t] = -np.log(p + 1e-11)
 
     def smoothing(self):
@@ -141,32 +154,24 @@ class ChangeFinder:
         第2段階目学習, 平滑化
         """
 
-
         # 対数損失を計算する
         # SDAR更新不可
         if len(self.S_X) <= self.k + self.T:
             self.L_L[self.t] = 0
             #self.S_T[self.t] = 0
-
         # SDAR更新可
         else:
             self.sdar_s.update(self.y[self.t])
-            
             # 対数損失計算可
             if len(self.sdar_s.x) > self.k + 1:
                 # probを求める
-                #p = st.norm.pdf(self.y[self.t], self.sdar_s.x_t_hat[-1], self.sdar_s.sigma_hat[-1])
                 p = self.p_norm(self.y[self.t], self.sdar_s.x_t_hat[-1], self.sdar_s.sigma_hat[-1])
-            
                 self.L_L[self.t] = -np.log(p+1e-11)
-
             else:
                 self.L_L[self.t] = 0
-            
         # 平均スコア算出不可
         if self.t < 2 * self.T + self.T_:
             self.S_T[self.t] = 0
-
         # 平均スコア算出可
         else:
             self.S_T[self.t] = np.mean(self.L_L[self.t-self.T_+1:self.t+1])
